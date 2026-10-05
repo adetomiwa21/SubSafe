@@ -22,6 +22,7 @@ export type Plan = {
   name: string;
   desc: string;
   image: string;
+  category: string;
 };
 
 export type Sub = {
@@ -103,6 +104,20 @@ export function usePlanSubs(planId: number) {
     enabled: DEPLOYED,
     refetchInterval: 30_000,
     queryFn: async () => loadSubs(config, await readContract(config, { ...safe, functionName: "subsOfPlan", args: [BigInt(planId)] })),
+  });
+}
+
+/** Every subscription on SubSafe (protocol stats). */
+export function useAllSubs() {
+  const config = useConfig();
+  return useQuery({
+    queryKey: ["allSubs"],
+    enabled: DEPLOYED,
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const n = Number(await readContract(config, { ...safe, functionName: "subscriptionCount" }));
+      return loadSubs(config, Array.from({ length: n }, (_, i) => BigInt(i)));
+    },
   });
 }
 

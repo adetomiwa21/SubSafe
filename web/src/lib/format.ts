@@ -6,7 +6,7 @@ export const MONTH = 2_592_000;
 
 export const toUsdt = (v: string | number) => parseUnits(String(v), DECIMALS);
 export const usdtNum = (v: bigint) => Number(formatUnits(v, DECIMALS));
-export const fmtUsdt = (v: bigint) => usdtNum(v).toLocaleString(undefined, { maximumFractionDigits: 2 });
+export const fmtUsdt = (v: bigint) => usdtNum(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 export const fmtNgn = (usdt: number, rate: number) => "₦" + Math.round(usdt * rate).toLocaleString();
 export const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
@@ -31,12 +31,16 @@ export function timeLeft(ts: number, now: number) {
   return `in ${Math.round(d / 86_400)} days`;
 }
 
-export function parseMeta(m: string): { desc: string; image: string } {
+export const CATEGORIES = ["Entertainment", "Music", "Education", "Fitness", "News", "Software", "Other"] as const;
+
+export type PlanMeta = { desc: string; image: string; category: string };
+
+export function parseMeta(m: string): PlanMeta {
   try {
     const j = JSON.parse(m);
-    return { desc: j.desc || "", image: j.image || "" };
+    return { desc: j.desc || "", image: j.image || "", category: j.category || "Other" };
   } catch {
-    return { desc: m || "", image: "" };
+    return { desc: m || "", image: "", category: "Other" };
   }
 }
 
