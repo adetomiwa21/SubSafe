@@ -1,52 +1,71 @@
 "use client";
 
+import { LogOut, Wallet } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useConnect, useConnection, useDisconnect, useSwitchChain } from "wagmi";
+import { useState } from "react";
+import { useBlockNumber, useConnect, useConnection, useDisconnect, useSwitchChain } from "wagmi";
 import { botchainTestnet } from "@/lib/chain";
-import { short, errMsg } from "@/lib/format";
+import { errMsg, fmtUsdt, short } from "@/lib/format";
+import { useMounted, useWallet } from "@/lib/hooks";
+import { Logo } from "./Logo";
 import { useToast } from "./Toast";
-import { useMounted } from "@/lib/hooks";
+import { AddressAvatar, btn } from "./ui";
 
 const LINKS = [
   { href: "/", label: "Explore" },
-  { href: "/subscriptions", label: "My Subscriptions" },
+  { href: "/subscriptions", label: "Subscriptions" },
   { href: "/studio", label: "Creator Studio" },
 ];
 
 export function ConnectButton({ className = "" }: { className?: string }) {
   const { address, chainId, isConnected } = useConnection();
-  const { mutateAsync: connect, connectors } = useConnect();
+  const { mutateAsync: connect, connectors, isPending } = useConnect();
   const { mutate: disconnect } = useDisconnect();
   const { mutateAsync: switchChain } = useSwitchChain();
+  const { data: wallet } = useWallet();
   const toast = useToast();
   const mounted = useMounted();
+  const [open, setOpen] = useState(false);
 
-  const base = "rounded-xl px-4 py-2 text-sm font-semibold transition";
-  if (!mounted) return <button className={`${base} bg-emerald-600 ${className}`}>Connect Wallet</button>;
+  if (!mounted) return <button className={`${btn.primary} ${className}`}>Connect wallet</button>;
 
   if (isConnected && chainId !== botchainTestnet.id)
     return (
-      <button className={`${base} bg-amber-500 text-black ${className}`} onClick={() => switchChain({ chainId: botchainTestnet.id }).catch((e) => toast(errMsg(e), "err"))}>
+      <button className={`${btn.secondary} border-warn/40 text-warn ${className}`} onClick={() => switchChain({ chainId: botchainTestnet.id }).catch((e) => toast(errMsg(e), "err"))}>
         Switch to BOTChain
       </button>
     );
 
-  if (isConnected)
+  if (isConnected && address)
     return (
-      <button className={`${base} border border-white/10 bg-zinc-900 hover:border-emerald-500 ${className}`} onClick={() => disconnect()} title="Disconnect">
-        <span className="mr-2 inline-block h-2 w-2 rounded-full bg-emerald-400" />
-        {short(address!)}
-      </button>
+      <div className="relative">
+        <button className={`${btn.secondary} gap-2.5 pl-2 ${className}`} onClick={() => setOpen((o) => !o)}>
+          <AddressAvatar address={address} />
+          <span className="num hidden text-muted sm:inline">{wallet ? `${fmtUsdt(wallet.balance)} USDT` : "…"}</span>
+          <span className="num">{short(address)}</span>
+        </button>
+        {open && (
+          <div className="fade-up absolute right-0 top-12 z-50 w-56 rounded-xl border border-line-strong bg-surface-2 p-1.5 shadow-2xl" onMouseLeave={() => setOpen(false)}>
+            <div className="px-3 py-2 text-xs text-subtle">Connected to BOTChain Testnet</div>
+            <a className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-white/5" href={`${botchainTestnet.blockExplorers.default.url}/address/${address}`} target="_blank" rel="noopener noreferrer">
+              <Wallet className="h-4 w-4 text-muted" /> View on explorer
+            </a>
+            <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-danger hover:bg-white/5" onClick={() => { setOpen(false); disconnect(); }}>
+              <LogOut className="h-4 w-4" /> Disconnect
+            </button>
+          </div>
+        )}
+      </div>
     );
 
   return (
     <button
-      className={`${base} bg-gradient-to-br from-emerald-500 to-emerald-700 text-white hover:brightness-110 ${className}`}
+      className={`${btn.primary} ${className}`}
+      disabled={isPending}
       onClick={async () => {
         const c = connectors[0];
-        if (!c || typeof window === "undefined" || !(window as { ethereum?: unknown }).ethereum)
-          return toast("No wallet found. Install MetaMask, BO Wallet or TokenPocket.", "err");
+        if (!c || !(window as { ethereum?: unknown }).ethereum) return toast("No wallet found. Install MetaMask, BO Wallet or TokenPocket.", "err");
         try {
           await connect({ connector: c, chainId: botchainTestnet.id });
         } catch (e) {
@@ -54,35 +73,50 @@ export function ConnectButton({ className = "" }: { className?: string }) {
         }
       }}
     >
-      Connect Wallet
+      {isPending ? "Connecting…" : "Connect wallet"}
     </button>
+  );
+}
+
+function BlockPill() {
+  const { data } = useBlockNumber({ watch: true });
+  const mounted = useMounted();
+  return (
+    <span className="hidden items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted lg:inline-flex" title="Latest BOTChain testnet block">
+      <span className={`h-1.5 w-1.5 rounded-full ${data ? "pulse-dot bg-brand" : "bg-subtle"}`} />
+      Testnet
+      <span className="num text-subtle">{mounted && data ? `#${data.toLocaleString()}` : ""}</span>
+    </span>
   );
 }
 
 export function Navbar() {
   const path = usePathname();
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-zinc-950/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
-        <Link href="/" className="text-xl font-semibold tracking-tight">
-          🛡️ Sub<span className="font-extrabold text-emerald-400">Safe</span>
-        </Link>
-        <nav className="order-3 flex w-full gap-1 overflow-x-auto rounded-full border border-white/10 bg-zinc-900 p-1 sm:order-none sm:w-auto">
-          {LINKS.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium ${path === l.href ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-white"}`}
-            >
-              {l.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="flex items-center gap-2">
-          <span className="hidden rounded-full border border-white/10 px-3 py-1 text-xs text-zinc-400 md:inline">BOTChain Testnet</span>
+    <header className="sticky top-0 z-40 border-b border-line bg-bg/80 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+        <div className="flex items-center gap-8">
+          <Link href="/"><Logo /></Link>
+          <nav className="hidden items-center gap-1 md:flex">
+            {LINKS.map((l) => (
+              <Link key={l.href} href={l.href} className={`rounded-md px-3 py-1.5 text-sm transition-colors ${path === l.href ? "text-fg" : "text-muted hover:text-fg"}`}>
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+        <div className="flex items-center gap-3">
+          <BlockPill />
           <ConnectButton />
         </div>
       </div>
+      <nav className="flex gap-1 overflow-x-auto border-t border-line px-3 py-2 md:hidden">
+        {LINKS.map((l) => (
+          <Link key={l.href} href={l.href} className={`whitespace-nowrap rounded-md px-3 py-1.5 text-sm ${path === l.href ? "bg-white/[0.06] text-fg" : "text-muted"}`}>
+            {l.label}
+          </Link>
+        ))}
+      </nav>
     </header>
   );
 }
