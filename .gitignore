@@ -1,11 +1,23 @@
+# dependencies / build output
 node_modules
-.env
-.env.local
 .next
 out
 cache
 artifacts
 coverage
 typechain-types
+*.tsbuildinfo
+next-env.d.ts
+
+# secrets: keep every env file local, only share the example
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# tooling
 .vercel
 .DS_Store
+CLAUDE.md
+AGENTS.md
