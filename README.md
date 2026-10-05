@@ -7,9 +7,9 @@ Built for **BOTChain** (EVM, low fees, AI + Web3). It uses BOTChain's native **U
 | | |
 |---|---|
 | **Chain** | BOTChain Testnet (chain ID `968`) |
-| **Contract** | `TBD after deploy` |
+| **Contract** | [`0x693598dFD9D499a036Cc6e8fFA103e7fec09f3dc`](https://scan.bohr.life/address/0x693598dFD9D499a036Cc6e8fFA103e7fec09f3dc#code) (verified) |
 | **USDT** | [`0x75edC9335175Fc0552D51D48439F229c10420fe3`](https://scan.bohr.life/token/0x75edC9335175Fc0552D51D48439F229c10420fe3) (6 decimals) |
-| **Demo** | `TBD (Vercel)` |
+| **Demo** | https://subsafe.vercel.app |
 | **Stack** | Solidity · Hardhat · Next.js 16 · Wagmi v3 · Viem · Tailwind v4 |
 
 ---
