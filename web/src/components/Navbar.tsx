@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useBlockNumber, useConnect, useConnection, useDisconnect, useSwitchChain } from "wagmi";
-import { botchainTestnet } from "@/lib/chain";
+import { EXPLORER, NETWORK_LABEL, activeChain } from "@/lib/chain";
 import { errMsg, fmtUsdt, short } from "@/lib/format";
 import { useMounted, useWallet } from "@/lib/hooks";
 import { Logo } from "./Logo";
@@ -30,10 +30,10 @@ export function ConnectButton({ className = "" }: { className?: string }) {
 
   if (!mounted) return <button className={`${btn.primary} ${className}`}>Connect wallet</button>;
 
-  if (isConnected && chainId !== botchainTestnet.id)
+  if (isConnected && chainId !== activeChain.id)
     return (
-      <button className={`${btn.secondary} border-warn/40 text-warn ${className}`} onClick={() => switchChain({ chainId: botchainTestnet.id }).catch((e) => toast(errMsg(e), "err"))}>
-        Switch to BOTChain
+      <button className={`${btn.secondary} border-warn/40 text-warn ${className}`} onClick={() => switchChain({ chainId: activeChain.id }).catch((e) => toast(errMsg(e), "err"))}>
+        Switch to BOT Chain
       </button>
     );
 
@@ -47,8 +47,8 @@ export function ConnectButton({ className = "" }: { className?: string }) {
         </button>
         {open && (
           <div className="fade-up absolute right-0 top-12 z-50 w-56 rounded-xl border border-line-strong bg-surface-2 p-1.5 shadow-2xl" onMouseLeave={() => setOpen(false)}>
-            <div className="px-3 py-2 text-xs text-subtle">Connected to BOTChain Testnet</div>
-            <a className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-white/5" href={`${botchainTestnet.blockExplorers.default.url}/address/${address}`} target="_blank" rel="noopener noreferrer">
+            <div className="px-3 py-2 text-xs text-subtle">Connected to {activeChain.name}</div>
+            <a className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-white/5" href={`${EXPLORER}/address/${address}`} target="_blank" rel="noopener noreferrer">
               <Wallet className="h-4 w-4 text-muted" /> View on explorer
             </a>
             <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-danger hover:bg-white/5" onClick={() => { setOpen(false); disconnect(); }}>
@@ -67,7 +67,7 @@ export function ConnectButton({ className = "" }: { className?: string }) {
         const c = connectors[0];
         if (!c || !(window as { ethereum?: unknown }).ethereum) return toast("No wallet found. Install MetaMask, BO Wallet or TokenPocket.", "err");
         try {
-          await connect({ connector: c, chainId: botchainTestnet.id });
+          await connect({ connector: c, chainId: activeChain.id });
         } catch (e) {
           toast(errMsg(e), "err");
         }
@@ -82,9 +82,9 @@ function BlockPill() {
   const { data } = useBlockNumber({ watch: true });
   const mounted = useMounted();
   return (
-    <span className="hidden items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted lg:inline-flex" title="Latest BOTChain testnet block">
+    <span className="hidden items-center gap-2 rounded-full border border-line px-3 py-1 text-xs text-muted lg:inline-flex" title={`Latest ${activeChain.name} block`}>
       <span className={`h-1.5 w-1.5 rounded-full ${data ? "pulse-dot bg-brand" : "bg-subtle"}`} />
-      Testnet
+      {NETWORK_LABEL}
       <span className="num text-subtle">{mounted && data ? `#${data.toLocaleString()}` : ""}</span>
     </span>
   );

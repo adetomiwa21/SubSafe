@@ -4,6 +4,7 @@ import { Check, Loader2, Lock } from "lucide-react";
 import { useState } from "react";
 import { erc20Abi, maxUint256 } from "viem";
 import { SUBSAFE_ADDRESS, USDT_ADDRESS } from "@/lib/contract";
+import { IS_MAINNET } from "@/lib/chain";
 import { fmtNgn, fmtUsdt, periodLabel, usdtNum } from "@/lib/format";
 import { subsafe, useTx, useWallet, type Plan } from "@/lib/hooks";
 import { useToast } from "./Toast";
@@ -91,7 +92,7 @@ export function SubscribeModal({ plan, rate, onClose }: { plan: Plan; rate: numb
         })}
       </ol>
 
-      {short && <p className="mt-4 text-sm text-danger">Your balance is {fmtUsdt(wallet!.balance)} USDT. Get test USDT from the BOTChain faucet.</p>}
+      {short && <p className="mt-4 text-sm text-danger">Your balance is {fmtUsdt(wallet!.balance)} USDT. {IS_MAINNET ? "Top up USDT on BOT Chain to continue." : "Get test USDT from the BOT Chain faucet."}</p>}
 
       <div className="mt-6 flex gap-2">
         <button className={`${btn.secondary} flex-1`} onClick={onClose}>Cancel</button>

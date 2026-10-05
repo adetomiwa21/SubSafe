@@ -10,6 +10,7 @@ import { PlanCard } from "@/components/PlanCard";
 import { SubscribeModal } from "@/components/SubscribeModal";
 import { Empty, Modal, SectionHead, Skeleton, btn, card } from "@/components/ui";
 import { fmtUsdt } from "@/lib/format";
+import { NETWORK_LABEL } from "@/lib/chain";
 import { DEPLOYED, useAllSubs, useMySubs, useNgnRate, useNow, usePlans, type Plan } from "@/lib/hooks";
 
 const STEPS = [
@@ -51,7 +52,7 @@ export default function Explore() {
         <div className="relative grid items-center gap-14 md:grid-cols-[1.15fr_1fr]">
           <div className="fade-up">
             <span className="inline-flex items-center gap-2 rounded-full border border-line-strong bg-surface px-3 py-1 text-xs text-muted">
-              <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-brand" /> Live on BOTChain testnet
+              <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-brand" /> Live on BOT Chain {NETWORK_LABEL.toLowerCase()}
             </span>
             <h1 className="mt-5 text-[2.5rem] font-semibold leading-[1.05] tracking-tight sm:text-[3.4rem]">
               Subscriptions that

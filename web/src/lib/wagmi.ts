@@ -1,12 +1,12 @@
 import { createConfig, http } from "wagmi";
 import { injected } from "wagmi/connectors";
-import { botchainTestnet } from "./chain";
+import { activeChain, botchainMainnet, botchainTestnet } from "./chain";
 
 // Injected only: MetaMask, BO Wallet, TokenPocket, OKX… no backend or API keys needed.
 export const config = createConfig({
-  chains: [botchainTestnet],
+  chains: [activeChain],
   connectors: [injected()],
-  transports: { [botchainTestnet.id]: http() },
+  transports: { [botchainMainnet.id]: http(), [botchainTestnet.id]: http() },
   ssr: true,
 });
 
